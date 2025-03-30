@@ -1,23 +1,19 @@
-; ORG 0x7c00
-; BITS 16
-
-; start:
-;     mov ah, 0eh
-;     mov al, 'A'
-;     mov bx, 0
-;     int 0x10 ; calling BIOS
-
-;     jmp $ ; Jump at this instruction only
-
-; times 510- ($ - $$) db 0
-; dw 0xAA55 ; this will be 55AA due to little Endian
-
-
-
-ORG 0x7c00
+ORG 0
 BITS 16
 
+jmp 0x7c0:start
+
 start:
+    cli ; Clear Interrupts, as we are going to change Segment Registers
+
+    mov ax, 0x7c0
+    mov ds, ax
+    mov es, ax
+    mov ax, 0x00
+    mov sp, 0x7c00
+
+    sti ; Enables Interrupts
+
     mov si, message  ; Load message address into SI
     call print_message
     jmp $ ; loop at this instruction only
