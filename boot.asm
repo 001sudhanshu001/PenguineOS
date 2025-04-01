@@ -1,73 +1,87 @@
-ORG 0
+ORG 0x7C00
 BITS 16
+
+CODE_SEG equ gdt_code - gdt_start
+DATA_SEG equ gdt_data - gdt_start
 
 _start:
     jmp short start
 
 start:       
-
-jmp 0x7c0:step2 ; This jumps to step2 while explicitly setting the Code Segment (CS) to 0x7C0.
+    jmp 0:step2 ; This jumps to step2 while explicitly setting the Code Segment (CS) to 0.
 
 ; Interrupts :: https://www.ctyme.com/intr/rb-0607.htm
 
 step2:
+    ; Disabling Interrupts so that the segment setup doesn't get interrupted.
     cli ; Clear Interrupts, as we are going to change Segment Registers
-    ;   Disabling Interrupts so that the segment setup doesn't get interrupted.
 
-    mov ax, 0x7c0
-    mov ds, ax ; Set Data Segment (DS) to 0x7C0 (so data accesses work correctly).
-    mov es, ax
     mov ax, 0x00
+    mov ds, ax ; Update Data Segment Register
+    mov es, ax
+    mov ss, ax
     mov sp, 0x7c00
 
-    sti ; Enables Interrupts
+    sti ; Start Interrupts
 
-    ; https://www.ctyme.com/intr/rb-0607.htm
-    mov ah, 2 ; BIOS READ Sector Command
-    mov al, 1 ; Sector 1 sector(count of sectors to be read)
-    mov ch, 0 ; Cylinder number (low eight bits)
-    mov cl, 2 ; Sector number (sector 2) (because sector 1 is the boot sector).
-    mov dh, 0 ; Head number
-    mov bx, buffer ; Load the sector into the memory at label buffer.
-    int 0x13 ;  BIOS interrupt to read sector
 
-    jc error ; int 0x13 will set Carry flag if there is error while reading from disk
+.load_protected:
+    cli
+    lgdt[gdt_descriptor]
+    mov eax, cr0    ; Load CR0 into EAX
+    or eax, 0x1     ; Set the PE (Protection Enable) bit
+    mov cr0, eax    ; Write back to CR0 (Now in Protected Mode!)
+    jmp CODE_SEG:load32 ; Update CS with the CODE_SEG for protected mode, and jump to label load32
 
-    mov si, buffer
-    call print_message
 
+; GDT -> It has the fixed default values.
+; The order of gdt is fixed, for null, code & data. Also in these labels
+gdt_start:
+
+gdt_null:  ; 64 Bits of 0 (32 bits each dd)
+    dd 0x0
+    dd 0x0
+
+; Offset Code
+; Code Segment Descriptor (8 bytes)
+; offset 0x8
+gdt_code:     ; CS should point to this
+    dw 0xffff ; Segment size (lower 16 bits)
+    dw 0x0000   ; Base (Lower 16 bits)
+    db 0x00     ; Base (Next 8 bits)
+    db 0x9A     ; Access Byte => Defines the type of segment (code/data), privilege level, and access permissions.
+    db 0xCF     ; Granularity, 32-bit : Controls granularity, size (16/32-bit), and upper limit bits
+    db 0x00     ; Base (Upper 8 bits)   
+
+; offset 0x10
+gdt_data:          ; Data Segment Descriptor (8 bytes)
+    dw 0xFFFF     ; Limit (low 16 bits)
+    dw 0x0000     ; Base (low 16 bits)
+    db 0x00       ; Base (next 8 bits)
+    db 0x92       ; Access Byte (Data Segment, Read-Write)
+    db 0xCF       ; Granularity & Limit (high 4 bits)
+    db 0x00       ; Base (high 8 bits)
+
+gdt_end:
+
+gdt_descriptor:  ; we will give that data to lgdt 
+    dw gdt_end - gdt_start - 1  ; size
+    dd gdt_start  ; Offset
+
+
+[BITS 32]
+; We can no longer access the BIOS, so we have to write our own Disk Driver tor ead from Disk
+load32:
+    mov ax, DATA_SEG
+    mov ds, ax
+    mov es, ax
+    mov fs, ax
+    mov gs, ax
+    mov ss, ax
+    mov ebp, 0x00200000
+    mov esp, ebp
     jmp $
 
-    error:
-        mov si, error_message  ; Load message address into SI
-        call print_message
-        jmp $
-
-        
-print_message:
-    mov bx, 0  ; Clear BX (not required, but kept for consistency)
-    .loop:
-        lodsb ; Load byte from (SI) into AL, increment SI so that it points to next character
-        cmp al, 0 ; Compare AL with 0 (null terminator)
-        je .done ; If null, exit function
-        call print_char
-        jmp .loop ; Repeat loop
-    .done:   ; Creating sublabel
-        ret
-
-print_char:
-    mov ah, 0eh ; Set AH = 0x0E (BIOS print function)
-    int 0x10  ; Call BIOS interrupt to print character
-    ret
-
-
-error_message: db 'Failed to load sector', 0
 
 times 510- ($ - $$) db 0
 dw 0xAA55 ; Boot sector magic number. This will be 55AA due to little Endian
-
-
-; This data is after first sector, so BIOS will not load this but we can reference it
-; The data from 512 is referenced by this label and this will be read by 
-; This is second sector after BL, so this will have the data of message.txt
-buffer:     ; This will be used for storing the disk data in RAM
