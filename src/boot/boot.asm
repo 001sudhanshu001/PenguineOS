@@ -1,8 +1,8 @@
 ORG 0x7C00
 BITS 16
 
-CODE_SEG equ gdt_code - gdt_start
-DATA_SEG equ gdt_data - gdt_start
+CODE_SEG equ gdt_code - gdt_start ; 0x8  ; gdt_code  represent the address of first instruction under it and same with others
+DATA_SEG equ gdt_data - gdt_start ; 0x10 ; These offset are predecided and fixed
 
 _start:
     jmp short start
@@ -68,26 +68,72 @@ gdt_descriptor:  ; we will give that data to lgdt
     dw gdt_end - gdt_start - 1  ; size
     dd gdt_start  ; Offset
 
-
 [BITS 32]
-; We can no longer access the BIOS, so we have to write our own Disk Driver tor ead from Disk
 load32:
-    mov ax, DATA_SEG
-    mov ds, ax
-    mov es, ax
-    mov fs, ax
-    mov gs, ax
-    mov ss, ax
-    mov ebp, 0x00200000
-    mov esp, ebp
+    mov eax, 1  ; Starting Sector no. (0 is for Bootloader)
+    mov ecx, 100 ; Total no. of sector 
+    mov edi, 0x0100000 ; The address where the sector will be loaded
+    call ata_lba_read
+    jmp CODE_SEG:0x0100000
 
-    ; Enable the A20 line
-    in al, 0x92
-    or al, 2
-    out 0x92, al
+; Driver to load kernel
+ata_lba_read:
+    mov ebx, eax, ; Backup the LBA
+    ; Send the highest 8 bits of the lba to hard disk controller
+    shr eax, 24
+    or eax, 0xE0 ; Select the master drive
+    mov dx, 0x1F6
+    out dx, al
+    ; Finished sending the highest 8 bits of the lba 
 
-    jmp $
+    ; Send the total sectors to read
+    mov eax, ecx
+    mov dx, 0x1F2
+    out dx, al
+    ; Finished sending the total sectors to read
 
+    mov eax, ebx ; Restore the backup LBA
+    mov dx, 0x1F3
+    out dx, al
+    ; Finished sending more bits of the LBA
+
+    ; Send more bits of the LBA
+    mov dx, 0x1F4
+    mov eax, ebx ; Restore the backup LBA
+    shr eax, 8
+    out dx, al
+    ; Finished sending more bits of the LBA
+
+    ; Send upper 16 bits of the LBA
+    mov dx, 0x1F5
+    mov eax, ebx ; Restore the backup LBA
+    shr eax, 16
+    out dx, al
+    ; Finished sending upper 16 bits of the LBA
+
+    mov dx, 0x1f7
+    mov al, 0x20
+    out dx, al
+
+.next_sector:
+    push ecx
+
+; Checking if we need to read
+.try_again:
+    mov dx, 0x1f7
+    in al, dx
+    test al, 8
+    jz .try_again
+ 
+
+; We need to read 256 words at a time
+    mov ecx, 256
+    mov dx, 0x1F0
+    rep insw
+    pop ecx
+    loop .next_sector
+    ; End of reading sectors into memory
+    ret    
 
 times 510- ($ - $$) db 0
 dw 0xAA55 ; Boot sector magic number. This will be 55AA due to little Endian
