@@ -21,3 +21,5 @@ _start:
     out 0x92, al
 
     jmp $
+
+times 512- ($ - $$) db 0 ; This is solve Alignment issues

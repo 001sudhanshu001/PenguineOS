@@ -79,7 +79,7 @@ load32:
 ; Driver to load kernel
 ata_lba_read:
     mov ebx, eax, ; Backup the LBA
-    ; Send the highest 8 bits of the lba to hard disk controller
+    ; Send the highest 8 bits give of the lba to hard disk controller
     shr eax, 24
     or eax, 0xE0 ; Select the master drive
     mov dx, 0x1F6

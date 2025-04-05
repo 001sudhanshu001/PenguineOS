@@ -1,6 +1,6 @@
 FILES = ./build/kernel.asm.o
 
-all: ./bin/boot.bin ${FILES}
+all: ./bin/boot.bin ./bin/kernel.bin
 	rm -rf ./bin/os.bin
 	dd if=./bin/boot.bin >> ./bin/os.bin
 	dd if=./bin/kernel.bin >> ./bin/os.bin
@@ -16,4 +16,8 @@ all: ./bin/boot.bin ${FILES}
 	nasm -f elf -g ./src/kernel.asm -o ./build/kernel.asm.o
 
 clean:
-	rm -rf ./bin/boot.bin
+	rm -rf ./bin/boot.
+	rm -rf ./bin/kernel.bin
+	rm -rf ./bin/os.bin
+	rm -rf ${FILES}
+	rm -rf ./build/kernelfull.o
