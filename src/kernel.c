@@ -2,6 +2,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "idt/idt.h"
+#include "io/io.h" 
 
 
 uint16_t* video_mem = 0;
@@ -62,5 +63,7 @@ void kernel_main() {
 
     // Initialize the Interrupt Descriptor Table
     idt_init();
+
+    outb(0x60, 0xff);
 
 }
