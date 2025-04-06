@@ -21,6 +21,7 @@ _start:
     or al, 2
     out 0x92, al
 
+    ; The control is transfered to C code
     call kernel_main
 
     jmp $

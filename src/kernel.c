@@ -1,7 +1,7 @@
 #include "kernel.h"
-
 #include <stddef.h>
 #include <stdint.h>
+#include "idt/idt.h"
 
 
 uint16_t* video_mem = 0;
@@ -57,6 +57,10 @@ void print(const char* str) {
 }
 
 void kernel_main() {
-    terminal_initialize();
-    print("Hello world!\ntest");
+    terminal_initialize(); // This will clear the Terminal
+    print("Hello PenguineOS!\ntest\n");
+
+    // Initialize the Interrupt Descriptor Table
+    idt_init();
+
 }
