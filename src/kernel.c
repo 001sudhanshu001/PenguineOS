@@ -2,7 +2,8 @@
 #include <stddef.h>
 #include <stdint.h>
 #include "idt/idt.h"
-#include "io/io.h" 
+#include "io/io.h"
+#include "memory/heap/kheap.h"
 
 
 uint16_t* video_mem = 0;
@@ -59,11 +60,19 @@ void print(const char* str) {
 
 void kernel_main() {
     terminal_initialize(); // This will clear the Terminal
-    print("Hello PenguineOS!\ntest\n");
+    print("Hello PenguineOS!\n");
 
+
+    // Initialize the heap
+    kheap_init();
     // Initialize the Interrupt Descriptor Table
     idt_init();
 
-    
+    void* ptr = kmalloc(50);
+    void* ptr2 = kmalloc(5000);
+
+    if(ptr || ptr2) {
+        
+    }
 
 }

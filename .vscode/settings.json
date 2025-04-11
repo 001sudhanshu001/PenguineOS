@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "config.h": "c",
+        "heap.h": "c",
+        "kheap.h": "c"
+    }
+}
