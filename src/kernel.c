@@ -65,14 +65,11 @@ void kernel_main() {
 
     // Initialize the heap
     kheap_init();
+
     // Initialize the Interrupt Descriptor Table
     idt_init();
 
-    void* ptr = kmalloc(50);
-    void* ptr2 = kmalloc(5000);
-
-    if(ptr || ptr2) {
-        
-    }
+    //Enable the System interrupts
+    enable_interrupts();
 
 }

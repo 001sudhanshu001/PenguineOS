@@ -46,7 +46,7 @@ void idt_init() {
     // CPU is hardwired/preprogrammed to  Automatically invoke Interrupt Vector Number 0 (IDT[0])
     // whenever there is a divide-by-zero operation.
     idt_set(0, idt_zero); // For Interrupt no. 0 Invoke idt_zero() function
-    idt_set(0x20, int21h);
+    idt_set(0x21, int21h); // 0x21 int for keypress, send by PIC
 
     // load the IDT
     idt_load(&idtr_descriptor);

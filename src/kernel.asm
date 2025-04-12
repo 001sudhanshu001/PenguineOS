@@ -30,11 +30,7 @@ _start:
     mov al, 00000001b
     out 0x21, al
     
-    ; End remap of master PIC
-
-    sti
-
-    
+        
     ; The control is transfered to C code
     call kernel_main
 
