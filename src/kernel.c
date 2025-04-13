@@ -4,6 +4,7 @@
 #include "idt/idt.h"
 #include "io/io.h"
 #include "memory/heap/kheap.h"
+#include "memory/paging/paging.h"
 
 
 uint16_t* video_mem = 0;
@@ -58,16 +59,25 @@ void print(const char* str) {
     }
 }
 
+static struct paging_4gb_chunk* kernel_chunk = 0;
 void kernel_main() {
     terminal_initialize(); // This will clear the Terminal
     print("Hello PenguineOS!\n");
-
 
     // Initialize the heap
     kheap_init();
 
     // Initialize the Interrupt Descriptor Table
     idt_init();
+
+    // Setup Paging
+    kernel_chunk = paging_new_4gb(PAGING_IS_WRITEABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+
+    //  Switch to kernel paging chunk
+    paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
+
+    // Enable Paging
+    enable_paging();
 
     //Enable the System interrupts
     enable_interrupts();
