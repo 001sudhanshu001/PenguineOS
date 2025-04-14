@@ -13,5 +13,7 @@
 #define PENGUINEOS_HEAP_ADDRESS 0x01000000 // Starting address of heap, at 16 MB
 #define PENGUINEOS_HEAP_TABLE_ADDRESS 0x00007E00 // The address where the table which stores the state of each memeory block
 // This table need 25600 Bytes
+
+#define PENGUINEOS_SECTOR_SIZE 512
 #endif
 

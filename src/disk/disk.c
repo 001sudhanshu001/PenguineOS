@@ -1,12 +1,18 @@
 #include "io/io.h"
+#include "disk.h"
+#include "memory/memory.h"
+#include "config.h"
+#include "status.h"
 
-int disk_read_sector(int lba, int total_blocks_to_read, void* buffer) {
+struct disk disk; // Represent primary hardisk
+
+int disk_read_sector(int lba, int total_sector_to_read, void* buffer) {
     // Step 1: Set the Drive/Head register
     // 0xE0 selects Master drive and enables LBA
     outb(0x1F6, (lba >> 24) | 0xE0);
 
     // Step 2: Send the number of sectors to read
-    outb(0x1F2, total_blocks_to_read);
+    outb(0x1F2, total_sector_to_read);
 
     // Step 3: Send the 28-bit LBA address, split into 3 registers
     outb(0x1F3, (unsigned char)(lba & 0xFF));        // LBA bits 0-7
@@ -20,7 +26,7 @@ int disk_read_sector(int lba, int total_blocks_to_read, void* buffer) {
     unsigned short* ptr = (unsigned short*) buffer;
 
     // Step 6: Read the data for each sector
-    for (int b = 0; b < total_blocks_to_read; b++) {
+    for (int b = 0; b < total_sector_to_read; b++) {
         // Wait for the disk to be ready (polling)
         // Bit 3 (0x08) of the status register must be set (DRQ - Data Request)
         char ch = insb(0x1F7);
@@ -36,4 +42,24 @@ int disk_read_sector(int lba, int total_blocks_to_read, void* buffer) {
     }
 
     return 0; // success
+}
+
+void disk_search_and_init() {
+    memset(&disk, 0, sizeof(disk));
+    disk.type = PENGUINEOS_DISK_TYPE_REAL;
+    disk.sector_size = PENGUINEOS_SECTOR_SIZE;
+}
+
+struct disk* disk_get(int index) {
+    if(index != 0) return 0;
+
+    return &disk;  // As we have only one disk for now
+}
+
+int disk_read_block(struct disk* idisk, unsigned int lba, int total_sector_to_read, void* buffer) {
+    if(idisk != &disk) {
+        return -EIO;
+    }
+
+    return disk_read_sector(lba, total_sector_to_read, buffer);
 }

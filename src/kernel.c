@@ -60,13 +60,27 @@ void print(const char* str) {
     }
 }
 
+const char* penguin_art =
+    "   .--.\n"
+    "  |o_o |\n"
+    "  |:_/ |\n"
+    " //   \\ \\\n"
+    "(|     | )\n"
+    "/'\\_   _/`\\\n"
+    "\\___)=(___/\n";
+
 static struct paging_4gb_chunk* kernel_chunk = 0;
+
 void kernel_main() {
     terminal_initialize(); // This will clear the Terminal
-    print("Hello PenguineOS!\n");
+    print(penguin_art);
+    print("\nHello PenguineOS\n");
 
     // Initialize the heap
     kheap_init();
+
+    // Search and Initialize the disks
+    disk_search_and_init();
 
     // Initialize the Interrupt Descriptor Table
     idt_init();
@@ -78,12 +92,9 @@ void kernel_main() {
     paging_switch(paging_4gb_chunk_get_directory(kernel_chunk));
 
     // Enable Paging
-    enable_paging();
+    // enable_paging();  // TODO
 
-    char buffer[512];
-    disk_read_sector(0, 1, buffer);
     
-
     //Enable the System interrupts
     enable_interrupts();
 

@@ -3,6 +3,10 @@
         "config.h": "c",
         "heap.h": "c",
         "kheap.h": "c",
-        "paging.h": "c"
+        "paging.h": "c",
+        "disk.h": "c",
+        "io.h": "c",
+        "stdint.h": "c",
+        "stddef.h": "c"
     }
 }

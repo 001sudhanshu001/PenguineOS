@@ -9,7 +9,7 @@ global enable_paging
 paging_load_directory:
     push ebp
     mov ebp, esp
-    mov eax, [ebp + 8] ; get first argument (pointer to directory)
+    mov eax, [ebp+8] ; get first argument (pointer to directory)
     mov cr3, eax       ; load it into CR3 register (which tells CPU where page directory is)
     pop ebp
     ret
