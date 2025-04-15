@@ -7,6 +7,7 @@
 #include "memory/paging/paging.h"
 #include "disk/disk.h"
 #include "string/string.h"
+#include "disk/streamer.h"
 
 
 uint16_t* video_mem = 0;

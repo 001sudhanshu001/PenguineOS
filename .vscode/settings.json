@@ -10,6 +10,7 @@
         "stddef.h": "c",
         "memory.h": "c",
         "status.h": "c",
-        "functional": "c"
+        "functional": "c",
+        "streamer.h": "c"
     }
 }
