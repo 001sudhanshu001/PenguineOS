@@ -6,6 +6,7 @@
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
 #include "disk/disk.h"
+#include "string/string.h"
 
 
 uint16_t* video_mem = 0;
@@ -43,14 +44,6 @@ void terminal_initialize() {
             terminal_putchar(x, y, ' ', 0);
         }
     }
-}
-
-size_t strlen(const char* str) {
-    size_t len = 0;
-    while (str[len]) {
-        len++;
-    }
-    return len;
 }
 
 void print(const char* str) {
@@ -94,7 +87,7 @@ void kernel_main() {
     // Enable Paging
     // enable_paging();  // TODO
 
-    
+
     //Enable the System interrupts
     enable_interrupts();
 

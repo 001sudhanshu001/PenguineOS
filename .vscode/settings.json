@@ -7,6 +7,9 @@
         "disk.h": "c",
         "io.h": "c",
         "stdint.h": "c",
-        "stddef.h": "c"
+        "stddef.h": "c",
+        "memory.h": "c",
+        "status.h": "c",
+        "functional": "c"
     }
 }
